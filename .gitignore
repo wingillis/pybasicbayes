@@ -1,3 +1,7 @@
 *.pyc
 *.pyo
 /tags
+
+build/
+*.egg-info
+__pycache__/

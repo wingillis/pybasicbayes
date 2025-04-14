@@ -20,7 +20,7 @@ from pybasicbayes.util.stats import sample_gaussian, sample_mniw, \
     sample_invgamma, update_param
 
 from pybasicbayes.util.general import blockarray, inv_psd, cumsum, \
-    all_none, any_none, AR_striding, objarray
+    all_none, any_none, AR_striding, objarray, symmetrize
 
 
 class Regression(GibbsSampling, MeanField, MaxLikelihood):
@@ -266,7 +266,7 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
         x = np.random.normal(size=(size,A.shape[1])) if x is None else x
         y = self.predict(x)
         y += np.random.normal(size=(x.shape[0], self.D_out)) \
-            .dot(np.linalg.cholesky(sigma).T)
+            .dot(np.linalg.cholesky(symmetrize(sigma)).T)
 
         return np.hstack((x,y)) if return_xy else y
 
@@ -971,7 +971,7 @@ class RobustRegression(Regression):
 
         # Sample precisions and t-distributed residuals
         tau = np.random.gamma(nu / 2.0, 2.0 / nu, size=(N,))
-        resid = np.random.randn(N, D).dot(np.linalg.cholesky(sigma).T)
+        resid = np.random.randn(N, D).dot(np.linalg.cholesky(symmetrize(sigma)).T)
         resid /= np.sqrt(tau[:, None])
 
         y = mu + resid

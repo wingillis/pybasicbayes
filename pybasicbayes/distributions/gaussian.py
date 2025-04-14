@@ -24,6 +24,7 @@ from pybasicbayes.util.stats import sample_niw, invwishart_entropy, \
     sample_invwishart, invwishart_log_partitionfunction, \
     getdatasize, flattendata, getdatadimension, \
     combinedata, multivariate_t_loglik, gi, niw_expectedstats
+from pybasicbayes.util.general import symmetrize
 
 weps = 1e-12
 
@@ -51,7 +52,7 @@ class _GaussianBase(object):
     @property
     def sigma_chol(self):
         if not hasattr(self,'_sigma_chol') or self._sigma_chol is None:
-            self._sigma_chol = np.linalg.cholesky(self.sigma)
+            self._sigma_chol = np.linalg.cholesky(symmetrize(self.sigma))
         return self._sigma_chol
 
     ### distribution stuff
@@ -329,7 +330,7 @@ class Gaussian(
     @property
     def sigma_mf_chol(self):
         if self._sigma_mf_chol is None:
-            self._sigma_mf_chol = np.linalg.cholesky(self.sigma_mf)
+            self._sigma_mf_chol = np.linalg.cholesky(symmetrize(self.sigma_mf))
         return self._sigma_mf_chol
 
     def get_vlb(self):
@@ -411,7 +412,7 @@ class Gaussian(
 
     def _log_partition_function(self,mu,sigma,kappa,nu):
         D = len(mu)
-        chol = np.linalg.cholesky(sigma)
+        chol = np.linalg.cholesky(symmetrize(sigma))
         return nu*D/2*np.log(2) + special.multigammaln(nu/2,D) + D/2*np.log(2*np.pi/kappa) \
             - nu*np.log(chol.diagonal()).sum()
 
@@ -576,13 +577,13 @@ class GaussianFixedCov(_GaussianBase, GibbsSampling, MaxLikelihood):
     @property
     def sigma_inv(self):
         if not hasattr(self,'_sigma_inv'):
-            self._sigma_inv = np.linalg.inv(self.sigma)
+            self._sigma_inv = np.linalg.inv(symmetrize(self.sigma))
         return self._sigma_inv
 
     @property
     def sigma_inv_0(self):
         if not hasattr(self,'_sigma_inv_0'):
-            self._sigma_inv_0 = np.linalg.inv(self.sigma_0)
+            self._sigma_inv_0 = np.linalg.inv(symmetrize(self.sigma_0))
         return self._sigma_inv_0
 
     @property
@@ -634,7 +635,7 @@ class GaussianFixedCov(_GaussianBase, GibbsSampling, MaxLikelihood):
     def resample(self,data=[]):
         mu_n, sigma_n_inv = self._posterior_hypparams(*self._get_statistics(data))
         D = len(mu_n)
-        L = np.linalg.cholesky(sigma_n_inv)
+        L = np.linalg.cholesky(symmetrize(sigma_n_inv))
         self.mu = scipy.linalg.solve_triangular(L,np.random.normal(size=D),lower=True) \
             + mu_n
         return self

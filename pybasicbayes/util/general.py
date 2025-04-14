@@ -276,8 +276,13 @@ def ndarrayhash(v):
 
 ### numerical linear algebra
 
+def symmetrize(A):
+    if not np.array_equal(A, A.T):
+        A = (A + A.T) / 2 
+    return A
+
 def inv_psd(A, return_chol=False):
-    L = np.linalg.cholesky(A)
+    L = np.linalg.cholesky(symmetrize(A))
     Ainv = lapack.dpotri(L, lower=True)[0]
     copy_lower_to_upper(Ainv)
     # if not np.allclose(Ainv, np.linalg.inv(A), rtol=1e-5, atol=1e-5):

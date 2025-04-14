@@ -10,7 +10,7 @@ import scipy.linalg
 from scipy.special import logsumexp
 from numpy.core.umath_tests import inner1d
 
-from .general import any_none, blockarray
+from pybasicbayes.util.general import any_none, symmetrize
 
 ### data abstraction
 
@@ -116,7 +116,7 @@ def sample_gaussian(mu=None,Sigma=None,J=None,h=None):
         return np.random.multivariate_normal(mu,Sigma)
     else:
         from scipy.linalg.lapack import dpotrs
-        L = np.linalg.cholesky(J)
+        L = np.linalg.cholesky(symmetrize(J))
         x = np.random.randn(h.shape[0])
         return scipy.linalg.solve_triangular(L,x,lower=True,trans='T') \
             + dpotrs(L,h,lower=True)[0]

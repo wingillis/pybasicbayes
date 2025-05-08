@@ -1,13 +1,18 @@
-# distutils: extra_compile_args = -O3 -w
-# cython: boundscheck = False, wraparound = False, cdivision = True
-
 import numpy as np
 cimport numpy as np
 
 from libc.stdint cimport int32_t
-from cython cimport floating, integral
 
-from cython.parallel import prange
+from cython cimport floating, integral
+from cython.parallel import prange, parallel
+
+ctypedef fused floating_t:
+    float
+    double
+
+ctypedef fused integral_t:
+    int
+    long
 
 cdef inline int32_t csample_discrete_normalized(floating[::1] distn, floating u):
     cdef int i
@@ -23,18 +28,14 @@ cdef inline int32_t csample_discrete_normalized(floating[::1] distn, floating u)
 
 def sample_markov(
         int T,
-        np.ndarray[floating, ndim=2, mode="c"] trans_matrix,
-        np.ndarray[floating, ndim=1, mode="c"] init_state_distn
+        floating_t[:, ::1] trans_matrix,
+        floating_t[::1] init_state_distn
         ):
-    cdef int32_t[::1] out = np.empty(T,dtype=np.int32)
-    cdef floating[:,::1] A = trans_matrix / trans_matrix.sum(1)[:,None]
-    cdef floating[::1] pi = init_state_distn / init_state_distn.sum()
+    cdef int32_t[::1] out = np.empty(T, dtype=np.int32)
+    cdef floating_t[:,::1] A = trans_matrix / trans_matrix.sum(1)[:, None]
+    cdef floating_t[::1] pi = init_state_distn / init_state_distn.sum()
 
-    cdef floating[::1] randseq
-    if floating is double:
-        randseq = np.random.random(T).astype(np.double)
-    else:
-        randseq = np.random.random(T).astype(np.float)
+    cdef floating_t[::1] randseq = np.random.random(T)
 
     cdef int t
     out[0] = csample_discrete_normalized(pi,randseq[0])
@@ -44,27 +45,23 @@ def sample_markov(
     return np.asarray(out)
 
 def sample_crp_tablecounts(
-        floating concentration,
-        integral[:,:] customers,
-        colweights = None,
+        floating_t concentration,
+        integral_t[:, :] customers,
+        floating_t[:] colweights=None
         ):
-    cdef integral[:,::1] _customers = np.require(customers, requirements='C')
-    cdef integral[:,::1] m = np.zeros_like(_customers)
-    cdef floating[::1] _colweights = np.require(colweights, requirements='C') \
+    cdef integral_t[:,::1] _customers = np.require(customers, requirements='C')
+    cdef integral_t[:,::1] m = np.zeros_like(_customers)
+    cdef floating_t[::1] _colweights = np.require(colweights, requirements='C') \
         if colweights is not None else np.ones(customers.shape[1])
     cdef int i, j, k
-    cdef integral tot = np.sum(_customers)
+    cdef integral_t tot = np.sum(_customers)
 
-    cdef floating[::1] randseq
-    if floating is double:
-        randseq = np.random.random(tot).astype(np.double)
-    else:
-        randseq = np.random.random(tot).astype(np.float)
+    cdef floating_t[::1] randseq = np.random.random(tot)
 
     tmp = np.empty_like(_customers)
     tmp[0,0] = 0
     tmp.flat[1:] = np.cumsum(np.ravel(customers)[:_customers.size-1],dtype=tmp.dtype)
-    cdef integral[:,::1] starts = tmp
+    cdef integral_t[:,::1] starts = tmp
 
     with nogil:
         for i in prange(_customers.shape[0]):
@@ -74,4 +71,3 @@ def sample_crp_tablecounts(
                         < (concentration * _colweights[j]) / (k+concentration*_colweights[j])
 
     return np.asarray(m)
-

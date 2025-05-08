@@ -1,5 +1,3 @@
-from __future__ import division
-import numpy as np
 
 model = None
 labels_list = None

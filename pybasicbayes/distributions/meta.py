@@ -1,14 +1,10 @@
-from __future__ import division
-from builtins import zip
-from builtins import range
-__all__ = ['_FixedParamsMixin', 'ProductDistribution']
-
 import numpy as np
 
 from pybasicbayes.abstractions import Distribution, \
     GibbsSampling, MeanField, MeanFieldSVI, MaxLikelihood
 from pybasicbayes.util.stats import atleast_2d
 
+__all__ = ['_FixedParamsMixin', 'ProductDistribution']
 
 class _FixedParamsMixin(Distribution):
     @property

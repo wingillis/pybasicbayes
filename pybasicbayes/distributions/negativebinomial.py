@@ -1,13 +1,3 @@
-from __future__ import division
-from builtins import zip
-from builtins import range
-from builtins import object
-__all__ = [
-    'NegativeBinomial', 'NegativeBinomialFixedR', 'NegativeBinomialIntegerR2',
-    'NegativeBinomialIntegerR', 'NegativeBinomialFixedRVariant',
-    'NegativeBinomialIntegerRVariant', 'NegativeBinomialIntegerRVariant',
-    'NegativeBinomialIntegerR2Variant']
-
 import numpy as np
 from numpy import newaxis as na
 import scipy.special as special
@@ -18,6 +8,13 @@ from pybasicbayes.abstractions import Distribution, GibbsSampling, \
     MeanField, MeanFieldSVI, MaxLikelihood
 from pybasicbayes.util.stats import getdatasize, flattendata, \
     sample_discrete_from_log, sample_discrete, atleast_2d
+
+__all__ = [
+    'NegativeBinomial', 'NegativeBinomialFixedR', 'NegativeBinomialIntegerR2',
+    'NegativeBinomialIntegerR', 'NegativeBinomialFixedRVariant',
+    'NegativeBinomialIntegerRVariant', 'NegativeBinomialIntegerRVariant',
+    'NegativeBinomialIntegerR2Variant']
+
 
 try:
     from pybasicbayes.util.cstats import sample_crp_tablecounts

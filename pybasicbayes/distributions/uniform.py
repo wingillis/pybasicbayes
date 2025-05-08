@@ -1,14 +1,11 @@
-from __future__ import division
-from builtins import map
-from builtins import range
-__all__ = ['UniformOneSided', 'Uniform']
-
 import numpy as np
 
 from pybasicbayes.abstractions import GibbsSampling
 from pybasicbayes.util.stats import sample_pareto
 from pybasicbayes.util.general import any_none
 
+
+__all__ = ['UniformOneSided', 'Uniform']
 
 class UniformOneSided(GibbsSampling):
     '''

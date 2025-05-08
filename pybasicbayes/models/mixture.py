@@ -1,16 +1,12 @@
-from __future__ import division
-from __future__ import absolute_import
-from builtins import zip
-from builtins import range
-from builtins import object
 import numpy as np
 from functools import reduce
-from future.utils import with_metaclass
-na = np.newaxis
 import scipy.special as special
-import abc, copy
+import abc
+import copy
 from warnings import warn
 from scipy.special import logsumexp
+
+na = np.newaxis
 
 from pybasicbayes.abstractions import ModelGibbsSampling, ModelMeanField, ModelEM
 from pybasicbayes.abstractions import Distribution, GibbsSampling, MeanField, Collapsed, \
@@ -721,7 +717,7 @@ class MixtureDistribution(Mixture, GibbsSampling, MeanField, MeanFieldSVI, Distr
             self.labels_list.pop()
 
 
-class CollapsedMixture(with_metaclass(abc.ABCMeta, ModelGibbsSampling)):
+class CollapsedMixture(ModelGibbsSampling, metaclass=abc.ABCMeta):
     def _get_counts(self,k):
         return sum(l._get_counts(k) for l in self.labels_list)
 

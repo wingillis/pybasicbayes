@@ -1,7 +1,3 @@
-from __future__ import division
-from builtins import zip
-__all__ = ['Binomial']
-
 import numpy as np
 import scipy.stats as stats
 import scipy.special as special
@@ -9,6 +5,8 @@ from warnings import warn
 
 from pybasicbayes.abstractions import GibbsSampling, MeanField, \
     MeanFieldSVI
+
+__all__ = ['Binomial']
 
 
 class Binomial(GibbsSampling, MeanField, MeanFieldSVI):

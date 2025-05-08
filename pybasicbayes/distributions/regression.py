@@ -905,27 +905,27 @@ class RobustRegression(Regression):
     """
     Regression with multivariate-t distributed noise.
 
-        y | x ~ t(Ax + b, \Sigma, \nu)
+        y | x ~ t(Ax + b, \\Sigma, \\nu)
 
-    where \nu >= 1 is the degrees of freedom.
+    where \\nu >= 1 is the degrees of freedom.
 
     This is equivalent to the model,
 
-        \tau ~ Gamma(\nu/2,  \nu/2)
-        y | x, \tau ~ N(Ax + b, \Sigma / \tau)
+        \\tau ~ Gamma(\\nu/2,  \\nu/2)
+        y | x, \\tau ~ N(Ax + b, \\Sigma / \\tau)
 
     To perform inference in this model, we will introduce
     auxiliary variables tau (precisions).  With these, we
-    can compute sufficient statistics scaled by \tau and
+    can compute sufficient statistics scaled by \\tau and
     use the standard regression object to
-    update A, b, Sigma | x, y, \tau.
+    update A, b, Sigma | x, y, \\tau.
 
-    The degrees of freedom parameter \nu is updated via maximum
+    The degrees of freedom parameter \\nu is updated via maximum
     likelihood using a generalized Newton's method proposed by
-    Tom Minka.  We are not using any prior on \nu, but we 
-    could experiment with updating \nu under an
-    uninformative prior, e.g. p(\nu) \propto \nu^{-2},
-    which is equivalent to a flat prior on \nu^{-1}.
+    Tom Minka.  We are not using any prior on \\nu, but we 
+    could experiment with updating \\nu under an
+    uninformative prior, e.g. p(\\nu) \\propto \\nu^{-2},
+    which is equivalent to a flat prior on \\nu^{-1}.
     """
     def __init__(
             self, nu_0=None,S_0=None, M_0=None, K_0=None, affine=False,

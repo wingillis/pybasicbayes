@@ -1,9 +1,3 @@
-from __future__ import division
-from future import standard_library
-standard_library.install_aliases()
-from builtins import next
-from builtins import zip
-from builtins import range
 import sys
 import numpy as np
 from numpy.lib.stride_tricks import as_strided as ast
@@ -13,7 +7,7 @@ import copy, collections, os, shutil, hashlib
 from contextlib import closing
 from itertools import chain, count
 from functools import reduce
-from urllib.request import urlopen  # py2.7 covered by standard_library.install_aliases()
+from urllib.request import urlopen
 
 
 def blockarray(*args,**kwargs):

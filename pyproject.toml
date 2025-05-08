@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "numpy", "Cython>=3.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pybasicbayes"
+version = "0.3.0"
+description = "Basic utilities for Bayesian inference"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    {name = "Matthew James Johnson", email = "mattjj@csail.mit.edu"}
+]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+keywords = [
+    "bayesian",
+    "inference",
+    "mcmc",
+    "variational inference",
+    "mean field",
+    "vb",
+]
+dependencies = [
+    "matplotlib>=3.10.1",
+    "numpy>=2.2.5",
+    "scipy>=1.15.3",
+]
+
+[project.urls]
+Homepage = "http://github.com/mattjj/pybasicbayes"
+Repository = "http://github.com/mattjj/pybasicbayes"
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2.2.post1",
+]
+
+[tool.setuptools]
+packages = ["pybasicbayes"]

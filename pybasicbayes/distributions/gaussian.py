@@ -1,17 +1,6 @@
-from __future__ import division
-from builtins import map
-from builtins import zip
-from builtins import range
-from builtins import object
-__all__ = \
-    ['Gaussian', 'GaussianFixedMean', 'GaussianFixedCov', 'GaussianFixed',
-     'GaussianNonConj', 'DiagonalGaussian', 'DiagonalGaussianNonconjNIG',
-     'IsotropicGaussian', 'ScalarGaussianNIX', 'ScalarGaussianNonconjNIX',
-     'ScalarGaussianNonconjNIG', 'ScalarGaussianFixedvar']
-
 import numpy as np
 from numpy import newaxis as na
-from numpy.core.umath_tests import inner1d
+from numpy import inner
 import scipy.linalg
 import scipy.stats as stats
 import scipy.special as special
@@ -25,6 +14,22 @@ from pybasicbayes.util.stats import sample_niw, invwishart_entropy, \
     getdatasize, flattendata, getdatadimension, \
     combinedata, multivariate_t_loglik, gi, niw_expectedstats
 from pybasicbayes.util.general import symmetrize
+
+
+__all__ = [
+    "Gaussian",
+    "GaussianFixedMean",
+    "GaussianFixedCov",
+    "GaussianFixed",
+    "GaussianNonConj",
+    "DiagonalGaussian",
+    "DiagonalGaussianNonconjNIG",
+    "IsotropicGaussian",
+    "ScalarGaussianNIX",
+    "ScalarGaussianNonconjNIX",
+    "ScalarGaussianNonconjNIG",
+    "ScalarGaussianFixedvar",
+]
 
 weps = 1e-12
 
@@ -70,7 +75,7 @@ class _GaussianBase(object):
             bads = np.isnan(np.atleast_2d(x)).any(axis=1)
             x = np.nan_to_num(x).reshape((-1,D)) - mu
             xs = scipy.linalg.solve_triangular(sigma_chol,x.T,lower=True)
-            out = -1./2. * inner1d(xs.T,xs.T) - D/2*np.log(2*np.pi) \
+            out = -1./2. * inner(xs.T,xs.T) - D/2*np.log(2*np.pi) \
                 - np.log(sigma_chol.diagonal()).sum()
             out[bads] = 0
             return out
@@ -363,7 +368,7 @@ class Gaussian(
 
             # see Eqs. 10.64, 10.67, and 10.71 in Bishop
             return self._loglmbdatilde()/2 - D/(2*kappa_n) - nu_n/2 * \
-                inner1d(xs.T,xs.T) - D/2*np.log(2*np.pi)
+                inner(xs.T,xs.T) - D/2*np.log(2*np.pi)
         else:
             D = self.mu_mf.shape[0]
 

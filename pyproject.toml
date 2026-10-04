@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel", "numpy", "Cython>=3.0"]
+requires = ["setuptools>=77.0", "wheel", "numpy>=2.2", "Cython>=3.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,16 +8,16 @@ version = "0.3.0"
 description = "Basic utilities for Bayesian inference"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 authors = [
     {name = "Matthew James Johnson", email = "mattjj@csail.mit.edu"}
 ]
 classifiers = [
     "Intended Audience :: Science/Research",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 keywords = [
     "bayesian",
@@ -28,9 +28,9 @@ keywords = [
     "vb",
 ]
 dependencies = [
-    "matplotlib>=3.10.1",
-    "numpy>=2.2.5",
-    "scipy>=1.15.3",
+    "matplotlib>=3.10",
+    "numpy>=2.2",
+    "scipy>=1.15",
 ]
 
 [project.urls]
@@ -39,8 +39,15 @@ Repository = "http://github.com/mattjj/pybasicbayes"
 
 [project.optional-dependencies]
 dev = [
-    "build>=1.2.2.post1",
+    "build>=1.2.2",
+    "pytest>=8.0",
 ]
 
 [tool.setuptools]
-packages = ["pybasicbayes"]
+packages = [
+    "pybasicbayes",
+    "pybasicbayes.distributions",
+    "pybasicbayes.models",
+    "pybasicbayes.util",
+    "pybasicbayes.testing",
+]

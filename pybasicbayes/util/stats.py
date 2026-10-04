@@ -5,7 +5,6 @@ import scipy.stats as stats
 import scipy.special as special
 import scipy.linalg
 from scipy.special import logsumexp
-from numpy import inner
 
 from pybasicbayes.util.general import any_none, symmetrize
 
@@ -330,7 +329,7 @@ def multivariate_t_loglik(y,nu,mu,lmbda):
     ys = scipy.linalg.solve_triangular(L,yc.T,overwrite_b=True,lower=True)
     return scipy.special.gammaln((nu+d)/2.) - scipy.special.gammaln(nu/2.) \
             - (d/2.)*np.log(nu*np.pi) - np.log(L.diagonal()).sum() \
-            - (nu+d)/2.*np.log1p(1./nu*inner(ys.T,ys.T))
+            - (nu+d)/2.*np.log1p(1./nu*np.einsum('ij,ij->i', ys.T, ys.T))
 
 def beta_predictive(priorcounts,newcounts):
     prior_nsuc, prior_nfail = priorcounts

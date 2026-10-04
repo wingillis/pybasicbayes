@@ -4,4 +4,7 @@
 
 build/
 *.egg-info
-__pycache__/
+__pycache__/build/
+dist/
+*.egg-info/
+uv.lock

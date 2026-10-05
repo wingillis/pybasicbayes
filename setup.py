@@ -16,7 +16,11 @@ class build_ext(_build_ext):
     # see http://stackoverflow.com/q/19919905 for explanation
     def finalize_options(self):
         _build_ext.finalize_options(self)
-        __builtins__.__NUMPY_SETUP__ = False
+        try:
+            import __builtin__ as builtins
+        except ImportError:
+            import builtins
+        builtins.__NUMPY_SETUP__ = False
         import numpy as np
         self.include_dirs.append(np.get_include())
 

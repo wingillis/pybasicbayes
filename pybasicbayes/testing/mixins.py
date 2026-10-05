@@ -1,17 +1,18 @@
-from __future__ import division
-from builtins import zip
-from builtins import range
-from builtins import object
 import numpy as np
-import abc, os
+import abc
 
-from nose.plugins.attrib import attr
+try:
+    from nose.plugins.attrib import attr
+except ImportError:  # nose is gone on modern Pythons; keep tags as no-ops
+    def attr(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
 
 import pybasicbayes
 from pybasicbayes.util import testing
-from future.utils import with_metaclass
 
-class DistributionTester(with_metaclass(abc.ABCMeta, object)):
+class DistributionTester(metaclass=abc.ABCMeta):
     @abc.abstractproperty
     def distribution_class(self):
         pass
@@ -77,7 +78,7 @@ class BasicTester(DistributionTester):
 
             self._check_stats(s1,s2)
 
-class BigDataGibbsTester(with_metaclass(abc.ABCMeta, DistributionTester)):
+class BigDataGibbsTester(DistributionTester, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def params_close(self,distn1,distn2):
         pass
@@ -109,7 +110,7 @@ class BigDataGibbsTester(with_metaclass(abc.ABCMeta, DistributionTester)):
 
         assert self.params_close(d1,d2)
 
-class MaxLikelihoodTester(with_metaclass(abc.ABCMeta, DistributionTester)):
+class MaxLikelihoodTester(DistributionTester, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def params_close(self,distn1,distn2):
         pass
@@ -142,7 +143,7 @@ class MaxLikelihoodTester(with_metaclass(abc.ABCMeta, DistributionTester)):
 
         assert self.params_close(d1,d2)
 
-class GewekeGibbsTester(with_metaclass(abc.ABCMeta, DistributionTester)):
+class GewekeGibbsTester(DistributionTester, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def geweke_statistics(self,distn,data):
         pass

@@ -82,7 +82,7 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
         B = M.dot(Kinv)
         C = Kinv
         d = nu
-        return np.array([A,B,C,d])
+        return objarray([A,B,C,d])
 
     @staticmethod
     def _natural_to_standard(natparam):
@@ -130,7 +130,7 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
                 xxT = blockarray([[xxT,x[:,na]],[x[na,:],np.atleast_2d(n)]])
                 yxT = np.hstack((yxT,y[:,na]))
 
-            return np.array([yyT, yxT, xxT, n])
+            return objarray([yyT, yxT, xxT, n])
         else:
             # data passed in like np.hstack((x, y))
             data = data[~np.isnan(data).any(1)]
@@ -146,7 +146,7 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
                 xxT = blockarray([[xxT,x[:,na]],[x[na,:],np.atleast_2d(n)]])
                 yxT = np.hstack((yxT,y[:,na]))
 
-            return np.array([yyT, yxT, xxT, n])
+            return objarray([yyT, yxT, xxT, n])
 
     def _get_weighted_statistics(self,data,weights):
         assert isinstance(data, (list, tuple, np.ndarray))
@@ -169,7 +169,7 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
                 xxT = blockarray([[xxT,x[:,na]],[x[na,:],np.atleast_2d(n)]])
                 yxT = np.hstack((yxT,y[:,na]))
 
-            return np.array([yyT, yxT, xxT, n])
+            return objarray([yyT, yxT, xxT, n])
         else:
             # data passed in like np.hstack((x, y))
             gi = ~np.isnan(data).any(1)
@@ -186,7 +186,7 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
                 xxT = blockarray([[xxT,x[:,na]],[x[na,:],np.atleast_2d(n)]])
                 yxT = np.hstack((yxT,y[:,na]))
 
-            return np.array([yyT, yxT, xxT, n])
+            return objarray([yyT, yxT, xxT, n])
 
     def _empty_statistics(self):
         D_in, D_out = self.D_in, self.D_out
@@ -206,7 +206,7 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
             yxT = np.hstack((yxT, y[:,None]))
             xxT = blockarray([[xxT, x[:,None]], [x[None,:], 1.]])
 
-        return np.array([yyT, yxT, xxT, n])
+        return objarray([yyT, yxT, xxT, n])
 
     ### distribution
 
@@ -997,7 +997,7 @@ class RobustRegression(Regression):
             ys = y * np.tile(sqrt_prec[:, None], (1, D))
 
             xxT, yxT, yyT = xs.T.dot(xs), ys.T.dot(xs), ys.T.dot(ys)
-            return np.array([yyT, yxT, xxT, n])
+            return objarray([yyT, yxT, xxT, n])
 
         else:
             # data passed in like np.hstack((x, y))
@@ -1023,7 +1023,7 @@ class RobustRegression(Regression):
                                   [x[na,:], np.atleast_2d(precisions.sum())]])
                 yxT = np.hstack((yxT, y[:,na]))
 
-            return np.array([yyT, yxT, xxT, n])
+            return objarray([yyT, yxT, xxT, n])
 
     def resample(self, data=[], stats=None):
         assert stats is None, \

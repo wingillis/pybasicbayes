@@ -216,7 +216,8 @@ class GewekeGibbsTester(DistributionTester, metaclass=abc.ABCMeta):
             for i in range(nsamples):
                 d = self.distribution_class(**hypparam_dict)
                 data = d.rvs(size=data_size)
-                forward_statistics[i] = self.geweke_statistics(d,data)
+                forward_statistics[i] = np.atleast_1d(
+                        np.asarray(self.geweke_statistics(d,data))).ravel()
 
             # collect gibbs-generated statistics
             gibbs_statistics = np.squeeze(np.empty((nsamples,sample_dim)))
@@ -225,7 +226,8 @@ class GewekeGibbsTester(DistributionTester, metaclass=abc.ABCMeta):
             for i in range(nsamples):
                 d.resample(data,**self.geweke_resample_kwargs)
                 data = d.rvs(size=data_size)
-                gibbs_statistics[i] = self.geweke_statistics(d,data)
+                gibbs_statistics[i] = np.atleast_1d(
+                        np.asarray(self.geweke_statistics(d,data))).ravel()
 
             testing.populations_eq_quantile_plot(forward_statistics,gibbs_statistics,fig=fig)
             try:

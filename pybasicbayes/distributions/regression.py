@@ -190,7 +190,7 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
 
     def _empty_statistics(self):
         D_in, D_out = self.D_in, self.D_out
-        return np.array(
+        return objarray(
             [np.zeros((D_out,D_out)), np.zeros((D_out,D_in)),
              np.zeros((D_in,D_in)),0])
 

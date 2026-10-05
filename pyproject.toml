@@ -1,0 +1,5 @@
+[build-system]
+# Build against the oldest supported numpy so the compiled extensions stay
+# ABI-compatible with every numpy the resolver may install at runtime.
+requires = ["setuptools<60", "wheel", "Cython==0.29.14", "numpy==1.18.3"]
+build-backend = "setuptools.build_meta"

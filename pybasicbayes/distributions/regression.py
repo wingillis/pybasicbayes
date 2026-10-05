@@ -1,17 +1,7 @@
-from __future__ import division
-from builtins import zip
-from builtins import range
-__all__ = ['Regression', 'RegressionNonconj', 'ARDRegression',
-           'AutoRegression', 'ARDAutoRegression', 'DiagonalRegression',
-           'RobustRegression', 'RobustAutoRegression']
-
-from warnings import warn
-
 import numpy as np
 from numpy import newaxis as na
 
-from scipy.linalg import solve_triangular
-from scipy.special import gammaln, digamma, polygamma
+from scipy.special import gammaln, digamma
 
 from pybasicbayes.abstractions import GibbsSampling, MaxLikelihood, \
     MeanField, MeanFieldSVI
@@ -21,6 +11,10 @@ from pybasicbayes.util.stats import sample_gaussian, sample_mniw, \
 
 from pybasicbayes.util.general import blockarray, inv_psd, cumsum, \
     all_none, any_none, AR_striding, objarray, symmetrize
+
+__all__ = ['Regression', 'RegressionNonconj', 'ARDRegression',
+           'AutoRegression', 'ARDAutoRegression', 'DiagonalRegression',
+           'RobustRegression', 'RobustAutoRegression']
 
 
 class Regression(GibbsSampling, MeanField, MaxLikelihood):
@@ -88,15 +82,14 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
         B = M.dot(Kinv)
         C = Kinv
         d = nu
-        return np.array([A,B,C,d])
+        return objarray([A,B,C,d])
 
     @staticmethod
     def _natural_to_standard(natparam):
         A,B,C,d = natparam   # natparam is roughly (yyT, yxT, xxT, n)
         nu = d
-        Kinv = C
+        Kinv = symmetrize(C)
         K = inv_psd(Kinv)
-        # M = B.dot(K)
         M = np.linalg.solve(Kinv, B.T).T
         # This subtraction seems unstable!
         # It does not necessarily return a PSD matrix
@@ -105,8 +98,9 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
         # numerical padding here...
         K += 1e-8*np.eye(K.shape[0])
         S += 1e-8*np.eye(S.shape[0])
-        assert np.all(0 < np.linalg.eigvalsh(S))
-        assert np.all(0 < np.linalg.eigvalsh(K))
+
+        if np.any(0 > np.linalg.eigvalsh(K)) or np.any(0 > np.linalg.eigvalsh(S)):
+            raise np.linalg.LinAlgError("K or S is not positive definite")
 
         # standard is degrees of freedom, mean of sigma (ish), mean of A, cov of rows of A
         return nu, S, M, K
@@ -136,7 +130,7 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
                 xxT = blockarray([[xxT,x[:,na]],[x[na,:],np.atleast_2d(n)]])
                 yxT = np.hstack((yxT,y[:,na]))
 
-            return np.array([yyT, yxT, xxT, n])
+            return objarray([yyT, yxT, xxT, n])
         else:
             # data passed in like np.hstack((x, y))
             data = data[~np.isnan(data).any(1)]
@@ -152,7 +146,7 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
                 xxT = blockarray([[xxT,x[:,na]],[x[na,:],np.atleast_2d(n)]])
                 yxT = np.hstack((yxT,y[:,na]))
 
-            return np.array([yyT, yxT, xxT, n])
+            return objarray([yyT, yxT, xxT, n])
 
     def _get_weighted_statistics(self,data,weights):
         assert isinstance(data, (list, tuple, np.ndarray))
@@ -175,7 +169,7 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
                 xxT = blockarray([[xxT,x[:,na]],[x[na,:],np.atleast_2d(n)]])
                 yxT = np.hstack((yxT,y[:,na]))
 
-            return np.array([yyT, yxT, xxT, n])
+            return objarray([yyT, yxT, xxT, n])
         else:
             # data passed in like np.hstack((x, y))
             gi = ~np.isnan(data).any(1)
@@ -192,11 +186,11 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
                 xxT = blockarray([[xxT,x[:,na]],[x[na,:],np.atleast_2d(n)]])
                 yxT = np.hstack((yxT,y[:,na]))
 
-            return np.array([yyT, yxT, xxT, n])
+            return objarray([yyT, yxT, xxT, n])
 
     def _empty_statistics(self):
         D_in, D_out = self.D_in, self.D_out
-        return np.array(
+        return objarray(
             [np.zeros((D_out,D_out)), np.zeros((D_out,D_in)),
              np.zeros((D_in,D_in)),0])
 
@@ -212,7 +206,7 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
             yxT = np.hstack((yxT, y[:,None]))
             xxT = blockarray([[xxT, x[:,None]], [x[None,:], 1.]])
 
-        return np.array([yyT, yxT, xxT, n])
+        return objarray([yyT, yxT, xxT, n])
 
     ### distribution
 
@@ -290,12 +284,12 @@ class Regression(GibbsSampling, MeanField, MaxLikelihood):
         if n > 0:
             try:
                 self.A = np.linalg.solve(xxT, yxT.T).T
-                self.sigma = (yyT - self.A.dot(yxT.T))/n
 
-                def symmetrize(A):
-                    return (A + A.T)/2.
-                self.sigma = 1e-10*np.eye(self.D_out) \
-                    + symmetrize(self.sigma)  # numerical
+                self.sigma = (yyT - self.A.dot(yxT.T)) / n
+
+                boost = 1e-10 * np.eye(self.D_out)
+                self.sigma = symmetrize(self.sigma) + boost
+
             except np.linalg.LinAlgError:
                 self.broken = True
         else:
@@ -610,7 +604,6 @@ class DiagonalRegression(Regression, MeanFieldSVI):
         mf_E_AAT = self._mf_A_cache["mf_E_AAT"]
 
         # Set the invgamma meanfield expectation
-        from scipy.special import digamma
         mf_E_sigmasq_inv = self.mf_alpha / self.mf_beta
         mf_E_log_sigmasq = np.log(self.mf_beta) - digamma(self.mf_alpha)
 
@@ -912,27 +905,27 @@ class RobustRegression(Regression):
     """
     Regression with multivariate-t distributed noise.
 
-        y | x ~ t(Ax + b, \Sigma, \nu)
+        y | x ~ t(Ax + b, \\Sigma, \\nu)
 
-    where \nu >= 1 is the degrees of freedom.
+    where \\nu >= 1 is the degrees of freedom.
 
     This is equivalent to the model,
 
-        \tau ~ Gamma(\nu/2,  \nu/2)
-        y | x, \tau ~ N(Ax + b, \Sigma / \tau)
+        \\tau ~ Gamma(\\nu/2,  \\nu/2)
+        y | x, \\tau ~ N(Ax + b, \\Sigma / \\tau)
 
     To perform inference in this model, we will introduce
     auxiliary variables tau (precisions).  With these, we
-    can compute sufficient statistics scaled by \tau and
+    can compute sufficient statistics scaled by \\tau and
     use the standard regression object to
-    update A, b, Sigma | x, y, \tau.
+    update A, b, Sigma | x, y, \\tau.
 
-    The degrees of freedom parameter \nu is updated via maximum
+    The degrees of freedom parameter \\nu is updated via maximum
     likelihood using a generalized Newton's method proposed by
-    Tom Minka.  We are not using any prior on \nu, but we 
-    could experiment with updating \nu under an
-    uninformative prior, e.g. p(\nu) \propto \nu^{-2},
-    which is equivalent to a flat prior on \nu^{-1}.
+    Tom Minka.  We are not using any prior on \\nu, but we 
+    could experiment with updating \\nu under an
+    uninformative prior, e.g. p(\\nu) \\propto \\nu^{-2},
+    which is equivalent to a flat prior on \\nu^{-1}.
     """
     def __init__(
             self, nu_0=None,S_0=None, M_0=None, K_0=None, affine=False,
@@ -1004,7 +997,7 @@ class RobustRegression(Regression):
             ys = y * np.tile(sqrt_prec[:, None], (1, D))
 
             xxT, yxT, yyT = xs.T.dot(xs), ys.T.dot(xs), ys.T.dot(ys)
-            return np.array([yyT, yxT, xxT, n])
+            return objarray([yyT, yxT, xxT, n])
 
         else:
             # data passed in like np.hstack((x, y))
@@ -1030,7 +1023,7 @@ class RobustRegression(Regression):
                                   [x[na,:], np.atleast_2d(precisions.sum())]])
                 yxT = np.hstack((yxT, y[:,na]))
 
-            return np.array([yyT, yxT, xxT, n])
+            return objarray([yyT, yxT, xxT, n])
 
     def resample(self, data=[], stats=None):
         assert stats is None, \

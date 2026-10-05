@@ -1,17 +1,19 @@
-from __future__ import division
-from builtins import zip
-from builtins import range
-from builtins import object
 import numpy as np
-import abc, os
+import abc
+import os
 
-from nose.plugins.attrib import attr
+try:
+    from nose.plugins.attrib import attr
+except ImportError:  # nose is gone on modern Pythons; keep tags as no-ops
+    def attr(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
 
 import pybasicbayes
 from pybasicbayes.util import testing
-from future.utils import with_metaclass
 
-class DistributionTester(with_metaclass(abc.ABCMeta, object)):
+class DistributionTester(metaclass=abc.ABCMeta):
     @abc.abstractproperty
     def distribution_class(self):
         pass
@@ -54,7 +56,7 @@ class BasicTester(DistributionTester):
 
     def _check_stats(self,s1,s2):
         if isinstance(s1,np.ndarray):
-            if s1.dtype == np.object:
+            if s1.dtype == object:
                 assert all(np.allclose(t1,t2) for t1, t2 in zip(s1,s2))
             else:
                 assert np.allclose(s1,s2)
@@ -77,7 +79,7 @@ class BasicTester(DistributionTester):
 
             self._check_stats(s1,s2)
 
-class BigDataGibbsTester(with_metaclass(abc.ABCMeta, DistributionTester)):
+class BigDataGibbsTester(DistributionTester, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def params_close(self,distn1,distn2):
         pass
@@ -109,7 +111,7 @@ class BigDataGibbsTester(with_metaclass(abc.ABCMeta, DistributionTester)):
 
         assert self.params_close(d1,d2)
 
-class MaxLikelihoodTester(with_metaclass(abc.ABCMeta, DistributionTester)):
+class MaxLikelihoodTester(DistributionTester, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def params_close(self,distn1,distn2):
         pass
@@ -142,7 +144,7 @@ class MaxLikelihoodTester(with_metaclass(abc.ABCMeta, DistributionTester)):
 
         assert self.params_close(d1,d2)
 
-class GewekeGibbsTester(with_metaclass(abc.ABCMeta, DistributionTester)):
+class GewekeGibbsTester(DistributionTester, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def geweke_statistics(self,distn,data):
         pass
@@ -193,6 +195,17 @@ class GewekeGibbsTester(with_metaclass(abc.ABCMeta, DistributionTester)):
         return os.path.join(os.path.dirname(__file__),'figures',
                             self.__class__.__name__,'setting_%d.pdf' % setting_idx)
 
+
+    @staticmethod
+    def _store_geweke_stat(arr, i, val):
+        # numpy >= 1.25 refuses to store a length-1 array into a scalar
+        # slot (the squeezed 1-D storage used for scalar statistics)
+        val = np.atleast_1d(np.asarray(val)).ravel()
+        if arr.ndim == 1 and val.shape[0] == 1:
+            arr[i] = val[0]
+        else:
+            arr[i] = val
+
     def check_geweke(self,setting_idx,hypparam_dict):
         import os
         from matplotlib import pyplot as plt
@@ -214,7 +227,8 @@ class GewekeGibbsTester(with_metaclass(abc.ABCMeta, DistributionTester)):
             for i in range(nsamples):
                 d = self.distribution_class(**hypparam_dict)
                 data = d.rvs(size=data_size)
-                forward_statistics[i] = self.geweke_statistics(d,data)
+                self._store_geweke_stat(
+                        forward_statistics, i, self.geweke_statistics(d,data))
 
             # collect gibbs-generated statistics
             gibbs_statistics = np.squeeze(np.empty((nsamples,sample_dim)))
@@ -223,7 +237,8 @@ class GewekeGibbsTester(with_metaclass(abc.ABCMeta, DistributionTester)):
             for i in range(nsamples):
                 d.resample(data,**self.geweke_resample_kwargs)
                 data = d.rvs(size=data_size)
-                gibbs_statistics[i] = self.geweke_statistics(d,data)
+                self._store_geweke_stat(
+                        gibbs_statistics, i, self.geweke_statistics(d,data))
 
             testing.populations_eq_quantile_plot(forward_statistics,gibbs_statistics,fig=fig)
             try:

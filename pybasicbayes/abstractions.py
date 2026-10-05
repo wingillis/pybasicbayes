@@ -1,6 +1,3 @@
-from __future__ import print_function
-from builtins import range
-from builtins import object
 import abc
 import numpy as np
 import copy
@@ -8,7 +5,6 @@ import copy
 import pybasicbayes
 from pybasicbayes.util.stats import combinedata
 from pybasicbayes.util.text import progprint_xrange
-from future.utils import with_metaclass
 
 # NOTE: data is always a (possibly masked) np.ndarray or list of (possibly
 # masked) np.ndarrays.
@@ -20,7 +16,7 @@ from future.utils import with_metaclass
 #  Base class  #
 ################
 
-class Distribution(with_metaclass(abc.ABCMeta, object)):
+class Distribution(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def rvs(self,size=[]):
         'random variates (samples)'
@@ -34,7 +30,7 @@ class Distribution(with_metaclass(abc.ABCMeta, object)):
         '''
         pass
 
-class BayesianDistribution(with_metaclass(abc.ABCMeta, Distribution)):
+class BayesianDistribution(Distribution, metaclass=abc.ABCMeta):
     def empirical_bayes(self,data):
         '''
         (optional) set hyperparameters via empirical bayes
@@ -46,7 +42,7 @@ class BayesianDistribution(with_metaclass(abc.ABCMeta, Distribution)):
 #  Algorithm interfaces for inference in distributions  #
 #########################################################
 
-class GibbsSampling(with_metaclass(abc.ABCMeta, BayesianDistribution)):
+class GibbsSampling(BayesianDistribution, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def resample(self,data=[]):
         pass
@@ -62,7 +58,7 @@ class GibbsSampling(with_metaclass(abc.ABCMeta, BayesianDistribution)):
         self.resample()
         return self.copy_sample()
 
-class MeanField(with_metaclass(abc.ABCMeta, BayesianDistribution)):
+class MeanField(BayesianDistribution, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def expected_log_likelihood(self,x):
         pass
@@ -74,12 +70,12 @@ class MeanField(with_metaclass(abc.ABCMeta, BayesianDistribution)):
     def get_vlb(self):
         raise NotImplementedError
 
-class MeanFieldSVI(with_metaclass(abc.ABCMeta, BayesianDistribution)):
+class MeanFieldSVI(BayesianDistribution, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def meanfield_sgdstep(self,expected_suff_stats,prob,stepsize):
         pass
 
-class Collapsed(with_metaclass(abc.ABCMeta, BayesianDistribution)):
+class Collapsed(BayesianDistribution, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def log_marginal_likelihood(self,data):
         pass
@@ -91,7 +87,7 @@ class Collapsed(with_metaclass(abc.ABCMeta, BayesianDistribution)):
     def predictive(self,*args,**kwargs):
         return np.exp(self.log_predictive(*args,**kwargs))
 
-class MaxLikelihood(with_metaclass(abc.ABCMeta, Distribution)):
+class MaxLikelihood(Distribution, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def max_likelihood(self,data,weights=None):
         '''
@@ -104,7 +100,7 @@ class MaxLikelihood(with_metaclass(abc.ABCMeta, Distribution)):
     def num_parameters(self):
         raise NotImplementedError
 
-class MAP(with_metaclass(abc.ABCMeta, BayesianDistribution)):
+class MAP(BayesianDistribution, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def MAP(self,data,weights=None):
         '''
@@ -133,7 +129,7 @@ class Tempering(BayesianDistribution):
 # over data: a model attaches a latent variable (like a label or state sequence)
 # to data, and so it 'holds onto' data. Hence the add_data method.
 
-class Model(with_metaclass(abc.ABCMeta, object)):
+class Model(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def add_data(self,data):
         pass
@@ -153,7 +149,7 @@ class Model(with_metaclass(abc.ABCMeta, object)):
 #  Algorithm interfaces for inference in models  #
 ##################################################
 
-class ModelGibbsSampling(with_metaclass(abc.ABCMeta, Model)):
+class ModelGibbsSampling(Model, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def resample_model(self): # TODO niter?
         pass
@@ -169,7 +165,7 @@ class ModelGibbsSampling(with_metaclass(abc.ABCMeta, Model)):
         self.resample_model()
         return self.copy_sample()
 
-class ModelMeanField(with_metaclass(abc.ABCMeta, Model)):
+class ModelMeanField(Model, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def meanfield_coordinate_descent_step(self):
         # returns variational lower bound after update, if available
@@ -187,12 +183,12 @@ class ModelMeanField(with_metaclass(abc.ABCMeta, Model)):
         print('WARNING: meanfield_coordinate_descent hit maxiter of %d' % maxiter)
         return scores
 
-class ModelMeanFieldSVI(with_metaclass(abc.ABCMeta, Model)):
+class ModelMeanFieldSVI(Model, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def meanfield_sgdstep(self,minibatch,prob,stepsize):
         pass
 
-class _EMBase(with_metaclass(abc.ABCMeta, Model)):
+class _EMBase(Model, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def log_likelihood(self):
         # returns a log likelihood number on attached data
@@ -216,7 +212,7 @@ class _EMBase(with_metaclass(abc.ABCMeta, Model)):
         print('WARNING: EM_fit reached maxiter of %d' % maxiter)
         return likes
 
-class ModelEM(with_metaclass(abc.ABCMeta, _EMBase)):
+class ModelEM(_EMBase, metaclass=abc.ABCMeta):
     def EM_fit(self,tol=1e-1,maxiter=100):
         return self._EM_fit(self.EM_step,tol=tol,maxiter=maxiter)
 
@@ -224,7 +220,7 @@ class ModelEM(with_metaclass(abc.ABCMeta, _EMBase)):
     def EM_step(self):
         pass
 
-class ModelMAPEM(with_metaclass(abc.ABCMeta, _EMBase)):
+class ModelMAPEM(_EMBase, metaclass=abc.ABCMeta):
     def MAP_EM_fit(self,tol=1e-1,maxiter=100):
         return self._EM_fit(self.MAP_EM_step,tol=tol,maxiter=maxiter)
 
@@ -232,12 +228,14 @@ class ModelMAPEM(with_metaclass(abc.ABCMeta, _EMBase)):
     def MAP_EM_step(self):
         pass
 
-class ModelParallelTempering(with_metaclass(abc.ABCMeta, Model)):
-    @abc.abstractproperty
+class ModelParallelTempering(Model, metaclass=abc.ABCMeta):
+    @property
+    @abc.abstractmethod
     def temperature(self):
         pass
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def energy(self):
         pass
 

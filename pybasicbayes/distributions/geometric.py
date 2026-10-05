@@ -1,7 +1,3 @@
-from __future__ import division
-from builtins import zip
-__all__ = ['Geometric']
-
 import numpy as np
 import scipy.stats as stats
 import scipy.special as special
@@ -10,6 +6,7 @@ from warnings import warn
 from pybasicbayes.abstractions import GibbsSampling, MeanField, \
     Collapsed, MaxLikelihood
 
+__all__ = ['Geometric']
 
 class Geometric(GibbsSampling, MeanField, Collapsed, MaxLikelihood):
     '''

@@ -1,6 +1,3 @@
-from __future__ import division
-from builtins import zip
-__all__ = ['Poisson']
 import numpy as np
 import scipy.stats as stats
 import scipy.special as special
@@ -8,6 +5,7 @@ import scipy.special as special
 from pybasicbayes.abstractions import GibbsSampling, Collapsed, \
     MaxLikelihood, MeanField, MeanFieldSVI
 
+__all__ = ['Poisson']
 
 class Poisson(GibbsSampling, Collapsed, MaxLikelihood, MeanField, MeanFieldSVI):
     '''

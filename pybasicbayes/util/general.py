@@ -1,9 +1,3 @@
-from __future__ import division
-from future import standard_library
-standard_library.install_aliases()
-from builtins import next
-from builtins import zip
-from builtins import range
 import sys
 import numpy as np
 from numpy.lib.stride_tricks import as_strided as ast
@@ -13,7 +7,7 @@ import copy, collections, os, shutil, hashlib
 from contextlib import closing
 from itertools import chain, count
 from functools import reduce
-from urllib.request import urlopen  # py2.7 covered by standard_library.install_aliases()
+from urllib.request import urlopen
 
 
 def blockarray(*args,**kwargs):
@@ -93,7 +87,7 @@ def match_by_overlap(a,b):
     scores = np.zeros((len(ais),len(bjs)))
     for i,ai in enumerate(ais):
         for j,bj in enumerate(bjs):
-            scores[i,j] = np.dot(np.array(a==ai,dtype=np.float),b==bj)
+            scores[i,j] = np.dot(np.array(a==ai,dtype=float),b==bj)
 
     flip = len(bjs) > len(ais)
 
@@ -311,7 +305,7 @@ class ObjArray(np.ndarray):
         if isinstance(lst,(np.ndarray,float,int)):
             return lst
         else:
-            return np.ndarray.__new__(cls,len(lst),dtype=np.object)
+            return np.ndarray.__new__(cls,len(lst),dtype=object)
 
     def __init__(self,lst):
         if not isinstance(lst,(np.ndarray,float,int)):

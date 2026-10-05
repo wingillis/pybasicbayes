@@ -195,6 +195,17 @@ class GewekeGibbsTester(DistributionTester, metaclass=abc.ABCMeta):
         return os.path.join(os.path.dirname(__file__),'figures',
                             self.__class__.__name__,'setting_%d.pdf' % setting_idx)
 
+
+    @staticmethod
+    def _store_geweke_stat(arr, i, val):
+        # numpy >= 1.25 refuses to store a length-1 array into a scalar
+        # slot (the squeezed 1-D storage used for scalar statistics)
+        val = np.atleast_1d(np.asarray(val)).ravel()
+        if arr.ndim == 1 and val.shape[0] == 1:
+            arr[i] = val[0]
+        else:
+            arr[i] = val
+
     def check_geweke(self,setting_idx,hypparam_dict):
         import os
         from matplotlib import pyplot as plt
@@ -216,8 +227,8 @@ class GewekeGibbsTester(DistributionTester, metaclass=abc.ABCMeta):
             for i in range(nsamples):
                 d = self.distribution_class(**hypparam_dict)
                 data = d.rvs(size=data_size)
-                forward_statistics[i] = np.atleast_1d(
-                        np.asarray(self.geweke_statistics(d,data))).ravel()
+                self._store_geweke_stat(
+                        forward_statistics, i, self.geweke_statistics(d,data))
 
             # collect gibbs-generated statistics
             gibbs_statistics = np.squeeze(np.empty((nsamples,sample_dim)))
@@ -226,8 +237,8 @@ class GewekeGibbsTester(DistributionTester, metaclass=abc.ABCMeta):
             for i in range(nsamples):
                 d.resample(data,**self.geweke_resample_kwargs)
                 data = d.rvs(size=data_size)
-                gibbs_statistics[i] = np.atleast_1d(
-                        np.asarray(self.geweke_statistics(d,data))).ravel()
+                self._store_geweke_stat(
+                        gibbs_statistics, i, self.geweke_statistics(d,data))
 
             testing.populations_eq_quantile_plot(forward_statistics,gibbs_statistics,fig=fig)
             try:

@@ -12,7 +12,7 @@ from pybasicbayes.util.stats import sample_niw, invwishart_entropy, \
     sample_invwishart, invwishart_log_partitionfunction, \
     getdatasize, flattendata, getdatadimension, \
     combinedata, multivariate_t_loglik, gi, niw_expectedstats
-from pybasicbayes.util.general import symmetrize
+from pybasicbayes.util.general import symmetrize, objarray
 
 
 __all__ = [
@@ -1014,14 +1014,13 @@ class DiagonalGaussianNonconjNIG(_GaussianBase,GibbsSampling):
             n = data.shape[0]
             y = np.einsum('ni->i',data)
             ysq = np.einsum('ni,ni->i',data,data)
-            return np.array([n,y,ysq],dtype=object)
+            return objarray([n,y,ysq])
         else:
             return sum((self._get_statistics(d) for d in data),self._empty_stats)
 
     @property
     def _empty_stats(self):
-        return np.array([0.,np.zeros_like(self.mu_0),np.zeros_like(self.mu_0)],
-                dtype=object)
+        return objarray([0.,np.zeros_like(self.mu_0),np.zeros_like(self.mu_0)])
 
 # TODO collapsed, meanfield, max_likelihood
 class IsotropicGaussian(GibbsSampling):

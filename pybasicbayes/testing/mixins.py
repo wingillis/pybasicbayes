@@ -1,5 +1,6 @@
 import numpy as np
 import abc
+import os
 
 try:
     from nose.plugins.attrib import attr

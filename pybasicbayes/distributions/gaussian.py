@@ -1,17 +1,5 @@
-from __future__ import division
-from builtins import map
-from builtins import zip
-from builtins import range
-from builtins import object
-__all__ = \
-    ['Gaussian', 'GaussianFixedMean', 'GaussianFixedCov', 'GaussianFixed',
-     'GaussianNonConj', 'DiagonalGaussian', 'DiagonalGaussianNonconjNIG',
-     'IsotropicGaussian', 'ScalarGaussianNIX', 'ScalarGaussianNonconjNIX',
-     'ScalarGaussianNonconjNIG', 'ScalarGaussianFixedvar']
-
 import numpy as np
 from numpy import newaxis as na
-from numpy.core.umath_tests import inner1d
 import scipy.linalg
 import scipy.stats as stats
 import scipy.special as special
@@ -24,7 +12,23 @@ from pybasicbayes.util.stats import sample_niw, invwishart_entropy, \
     sample_invwishart, invwishart_log_partitionfunction, \
     getdatasize, flattendata, getdatadimension, \
     combinedata, multivariate_t_loglik, gi, niw_expectedstats
-from pybasicbayes.util.general import symmetrize
+from pybasicbayes.util.general import symmetrize, objarray
+
+
+__all__ = [
+    "Gaussian",
+    "GaussianFixedMean",
+    "GaussianFixedCov",
+    "GaussianFixed",
+    "GaussianNonConj",
+    "DiagonalGaussian",
+    "DiagonalGaussianNonconjNIG",
+    "IsotropicGaussian",
+    "ScalarGaussianNIX",
+    "ScalarGaussianNonconjNIX",
+    "ScalarGaussianNonconjNIG",
+    "ScalarGaussianFixedvar",
+]
 
 weps = 1e-12
 
@@ -70,7 +74,7 @@ class _GaussianBase(object):
             bads = np.isnan(np.atleast_2d(x)).any(axis=1)
             x = np.nan_to_num(x).reshape((-1,D)) - mu
             xs = scipy.linalg.solve_triangular(sigma_chol,x.T,lower=True)
-            out = -1./2. * inner1d(xs.T,xs.T) - D/2*np.log(2*np.pi) \
+            out = -1./2. * np.einsum('ij,ij->i', xs.T, xs.T) - D/2*np.log(2*np.pi) \
                 - np.log(sigma_chol.diagonal()).sum()
             out[bads] = 0
             return out
@@ -363,7 +367,7 @@ class Gaussian(
 
             # see Eqs. 10.64, 10.67, and 10.71 in Bishop
             return self._loglmbdatilde()/2 - D/(2*kappa_n) - nu_n/2 * \
-                inner1d(xs.T,xs.T) - D/2*np.log(2*np.pi)
+                np.einsum('ij,ij->i', xs.T, xs.T) - D/2*np.log(2*np.pi)
         else:
             D = self.mu_mf.shape[0]
 
@@ -1010,14 +1014,13 @@ class DiagonalGaussianNonconjNIG(_GaussianBase,GibbsSampling):
             n = data.shape[0]
             y = np.einsum('ni->i',data)
             ysq = np.einsum('ni,ni->i',data,data)
-            return np.array([n,y,ysq],dtype=np.object)
+            return objarray([n,y,ysq])
         else:
             return sum((self._get_statistics(d) for d in data),self._empty_stats)
 
     @property
     def _empty_stats(self):
-        return np.array([0.,np.zeros_like(self.mu_0),np.zeros_like(self.mu_0)],
-                dtype=np.object)
+        return objarray([0.,np.zeros_like(self.mu_0),np.zeros_like(self.mu_0)])
 
 # TODO collapsed, meanfield, max_likelihood
 class IsotropicGaussian(GibbsSampling):

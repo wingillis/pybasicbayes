@@ -1,10 +1,3 @@
-from __future__ import division
-from builtins import zip
-from builtins import map
-from builtins import range
-__all__ = ['Categorical', 'CategoricalAndConcentration', 'Multinomial',
-           'MultinomialAndConcentration', 'GammaCompoundDirichlet', 'CRP']
-
 import numpy as np
 from warnings import warn
 import scipy.stats as stats
@@ -14,6 +7,10 @@ from pybasicbayes.abstractions import \
     GibbsSampling, MeanField, MeanFieldSVI, MaxLikelihood, MAP
 
 from pybasicbayes.util.stats import sample_discrete
+
+__all__ = ['Categorical', 'CategoricalAndConcentration', 'Multinomial',
+           'MultinomialAndConcentration', 'GammaCompoundDirichlet', 'CRP']
+
 
 try:
     from pybasicbayes.util.cstats import sample_crp_tablecounts
